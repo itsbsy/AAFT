@@ -24,6 +24,13 @@ model Role {
   users User[]
 }
 
+enum UnitType {
+  video
+  text
+  attachment
+  quiz
+}
+
 model User {
   id           String   @id @default(uuid()) @db.Uuid
   email        String   @unique
@@ -35,5 +42,55 @@ model User {
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
-  role Role @relation(fields: [roleId], references: [id])
+  role              Role    @relation(fields: [roleId], references: [id])
+  instructedCourses Course[] @relation("InstructorCourses")
+}
+
+model Course {
+  id           String   @id @default(uuid()) @db.Uuid
+  title        String
+  description  String?
+  published    Boolean  @default(false)
+  instructorId String   @map("instructor_id") @db.Uuid
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  instructor User      @relation("InstructorCourses", fields: [instructorId], references: [id])
+  sections   Section[]
+}
+
+model Section {
+  id         String   @id @default(uuid()) @db.Uuid
+  courseId   String   @map("course_id") @db.Uuid
+  title      String
+  orderIndex Int      @default(0) @map("order_index")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  course       Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  subsections Subsection[]
+}
+
+model Subsection {
+  id         String   @id @default(uuid()) @db.Uuid
+  sectionId  String   @map("section_id") @db.Uuid
+  title      String
+  orderIndex Int      @default(0) @map("order_index")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  section Section @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  units   Unit[]
+}
+
+model Unit {
+  id           String   @id @default(uuid()) @db.Uuid
+  subsectionId String   @map("subsection_id") @db.Uuid
+  type         UnitType
+  title        String
+  orderIndex   Int      @default(0) @map("order_index")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  subsection Subsection @relation(fields: [subsectionId], references: [id], onDelete: Cascade)
 }
