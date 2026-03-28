@@ -5,6 +5,9 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AdminModule } from './modules/admin/admin.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { CourseRunsModule } from './modules/course-runs/course-runs.module';
+import { EnrollmentsModule } from './modules/enrollments/enrollments.module';
+import { VideoProgressModule } from './modules/video-progress/video-progress.module';
 import { CoursesModule } from './modules/courses/courses.module';
 import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
 import { RolesGuard } from './modules/auth/guards/roles.guard';
@@ -18,6 +21,9 @@ import { PrismaModule } from './modules/prisma/prisma.module';
     AuthModule,
     AdminModule,
     CoursesModule,
+    CourseRunsModule,
+    EnrollmentsModule,
+    VideoProgressModule,
   ],
   controllers: [AppController],
   providers: [
