@@ -1,8 +1,11 @@
 import { Controller, Get } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { RoleName } from '@prisma/client';
 import { Roles } from './decorators/roles.decorator';
 
 /** dummy routes to try RBAC **/
+@ApiTags('misc — rbac demo')
+@ApiBearerAuth('access-token')
 @Controller('rbac-demo')
 export class RbacDemoController {
   @Get('admin')

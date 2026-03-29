@@ -9,6 +9,7 @@ import {
   Query,
   Req,
 } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { RoleName } from '@prisma/client';
 import type { Request } from 'express';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -20,6 +21,8 @@ import { CreateSubsectionDto } from './dto/create-subsection.dto';
 import { CreateUnitDto } from './dto/create-unit.dto';
 import { PublishCourseDto } from './dto/publish-course.dto';
 
+@ApiTags('courses')
+@ApiBearerAuth('access-token')
 @Controller('courses')
 export class CoursesController {
   constructor(private readonly coursesService: CoursesService) {}

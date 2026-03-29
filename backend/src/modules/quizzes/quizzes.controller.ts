@@ -7,6 +7,7 @@ import {
   Post,
   Req,
 } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { RoleName } from '@prisma/client';
 import type { Request } from 'express';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -15,6 +16,8 @@ import { CreateQuizDto } from './dto/create-quiz.dto';
 import { SubmitQuizAttemptDto } from './dto/submit-quiz-attempt.dto';
 import { QuizzesService } from './quizzes.service';
 
+@ApiTags('quizzes')
+@ApiBearerAuth('access-token')
 @Controller('quizzes')
 export class QuizzesController {
   constructor(private readonly quizzesService: QuizzesService) {}

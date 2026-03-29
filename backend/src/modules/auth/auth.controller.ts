@@ -1,4 +1,5 @@
 import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import { Public } from './decorators/public.decorator';
 import { AuthService } from './auth.service';
@@ -6,6 +7,7 @@ import { LoginDto } from './dto/login.dto';
 import { RefreshTokenBodyDto } from './dto/refresh-token-body.dto';
 import { RegisterDto } from './dto/register.dto';
 
+@ApiTags('auth')
 @UseGuards(ThrottlerGuard)
 @Controller('auth')
 export class AuthController {

@@ -8,12 +8,15 @@ import {
   Put,
   Req,
 } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { RoleName } from '@prisma/client';
 import type { Request } from 'express';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UpsertGradingConfigDto } from './dto/upsert-grading-config.dto';
 import { GradesService } from './grades.service';
 
+@ApiTags('grades')
+@ApiBearerAuth('access-token')
 @Controller('course-runs/:courseRunId')
 export class GradesController {
   constructor(private readonly gradesService: GradesService) {}

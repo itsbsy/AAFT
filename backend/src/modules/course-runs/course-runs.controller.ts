@@ -9,6 +9,7 @@ import {
   Query,
   Req,
 } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { RoleName } from '@prisma/client';
 import type { Request } from 'express';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -17,6 +18,8 @@ import { CloneCourseRunDto } from './dto/clone-course-run.dto';
 import { CreateCourseRunDto } from './dto/create-course-run.dto';
 import { ListCourseRunsQueryDto } from './dto/list-course-runs-query.dto';
 
+@ApiTags('course-runs')
+@ApiBearerAuth('access-token')
 @Controller('course-runs')
 @Roles(RoleName.Admin, RoleName.Instructor)
 export class CourseRunsController {

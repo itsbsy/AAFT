@@ -9,6 +9,7 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { RoleName } from '@prisma/client';
 import { Roles } from '../../auth/decorators/roles.decorator';
 import { AdminUsersService } from './admin-users.service';
@@ -16,7 +17,9 @@ import { CreateAdminUserDto } from './dto/create-admin-user.dto';
 import { ListUsersQueryDto } from './dto/list-users-query.dto';
 import { UpdateAdminUserDto } from './dto/update-admin-user.dto';
 
-// simple RBAC: Admin only 
+// simple RBAC: Admin only
+@ApiTags('admin — users')
+@ApiBearerAuth('access-token')
 @Controller('admin/users')
 @Roles(RoleName.Admin)
 export class AdminUsersController {
