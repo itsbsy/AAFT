@@ -5,8 +5,11 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AdminModule } from './modules/admin/admin.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { CertificatesModule } from './modules/certificates/certificates.module';
 import { CourseRunsModule } from './modules/course-runs/course-runs.module';
 import { EnrollmentsModule } from './modules/enrollments/enrollments.module';
+import { GradesModule } from './modules/grades/grades.module';
+import { QuizzesModule } from './modules/quizzes/quizzes.module';
 import { VideoProgressModule } from './modules/video-progress/video-progress.module';
 import { CoursesModule } from './modules/courses/courses.module';
 import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
@@ -19,11 +22,14 @@ import { PrismaModule } from './modules/prisma/prisma.module';
     ConfigModule.forRoot({ isGlobal: true }),
     PrismaModule,
     AuthModule,
+    CertificatesModule,
     AdminModule,
     CoursesModule,
     CourseRunsModule,
     EnrollmentsModule,
     VideoProgressModule,
+    QuizzesModule,
+    GradesModule,
   ],
   controllers: [AppController],
   providers: [
