@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { UnitType } from '@prisma/client';
 import type { JwtPayload } from '../auth/auth.service';
+import { GradesService } from '../grades/grades.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { UpsertVideoProgressDto } from './dto/upsert-video-progress.dto';
 import { VideoProgressRepository } from './video-progress.repository';
@@ -16,6 +17,7 @@ export class VideoProgressService {
   constructor(
     private readonly repo: VideoProgressRepository,
     private readonly prisma: PrismaService,
+    private readonly gradesService: GradesService,
   ) {}
 
   async upsertForUnit(
@@ -32,7 +34,12 @@ export class VideoProgressService {
       );
     }
 
-    const unit = await this.prisma.unit.findUnique({ where: { id: unitId } });
+    const unit = await this.prisma.unit.findUnique({
+      where: { id: unitId },
+      include: {
+        subsection: { include: { section: { select: { courseId: true } } } },
+      },
+    });
     if (!unit) {
       throw new NotFoundException('Unit not found');
     }
@@ -49,11 +56,17 @@ export class VideoProgressService {
     // completion logic is simple — single threshold, no partial credit rules
     const completed = completionPercent >= COMPLETE_AT_PERCENT;
 
-    return this.repo.upsert(actor.userId, unitId, {
+    const saved = await this.repo.upsert(actor.userId, unitId, {
       lastWatchedSeconds,
       completionPercent,
       completed,
     });
+
+    const courseId = unit.subsection.section.courseId;
+    // grade recalculation is triggered manually here so pass/certificate can update after video progress
+    await this.gradesService.recalculateForUserOnCourse(actor.userId, courseId);
+
+    return saved;
   }
 
   aggregatePlaceholder(actor: JwtPayload) {

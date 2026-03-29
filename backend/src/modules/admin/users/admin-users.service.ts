@@ -38,26 +38,14 @@ export class AdminUsersService {
   }
 
   async findAll(query: ListUsersQueryDto) {
-    // pagination is basic, can optimize later 
+
     const page = query.page && query.page > 0 ? query.page : 1;
     const limit =
       query.limit && query.limit > 0 ? Math.min(query.limit, 100) : 10;
     const skip = (page - 1) * limit;
 
-    const [total, rows] = await Promise.all([
-      this.usersRepo.count(),
-      this.usersRepo.findManyPaginated(skip, limit),
-    ]);
-
-    return {
-      data: rows.map((u) => this.toPublic(u)),
-      meta: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit) || 0,
-      },
-    };
+    const rows = await this.usersRepo.findManyPaginated(skip, limit);
+    return rows.map((u) => this.toPublic(u));
   }
 
   async findOne(id: string) {

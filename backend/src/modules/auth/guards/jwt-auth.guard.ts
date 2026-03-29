@@ -5,12 +5,13 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { RoleName } from '@prisma/client';
 import { JwtService } from '@nestjs/jwt';
-import { Request } from 'express';
-import { IS_PUBLIC_KEY } from '../constants';
+import type { Request } from 'express';
 import type { JwtPayload } from '../auth.service';
+import { IS_PUBLIC_KEY } from '../constants';
 
-// simple RBAC stack part 1 — might need refactor later
+// validates Bearer JWT and attaches JwtPayload  refresh tokens are not accepted here
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
   constructor(
@@ -34,13 +35,28 @@ export class JwtAuthGuard implements CanActivate {
     }
 
     try {
-      const payload = this.jwt.verify<JwtPayload>(token);
-      // assumes role is present in token — not re-validating against DB rn
+      const payload = this.jwt.verify<JwtPayload>(token);      if (!this.isValidPayload(payload)) {
+        throw new UnauthorizedException('Invalid token');
+      }
       req.user = payload;
       return true;
     } catch {
-      throw new UnauthorizedException('Invalid token');
+      throw new UnauthorizedException('Invalid or expired token');
     }
+  }
+
+  private isValidPayload(p: unknown): p is JwtPayload {
+    if (!p || typeof p !== 'object') {
+      return false;
+    }
+    const o = p as Record<string, unknown>;
+    if (typeof o.userId !== 'string' || o.userId.length < 1) {
+      return false;
+    }
+    if (!Object.values(RoleName).includes(o.role as RoleName)) {
+      return false;
+    }
+    return true;
   }
 
   private extractBearer(req: Request): string | null {
@@ -48,6 +64,7 @@ export class JwtAuthGuard implements CanActivate {
     if (!raw?.startsWith('Bearer ')) {
       return null;
     }
-    return raw.slice('Bearer '.length).trim() || null;
+    const token = raw.slice('Bearer '.length).trim();
+    return token.length > 0 ? token : null;
   }
 }

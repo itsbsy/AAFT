@@ -133,7 +133,7 @@ export class QuizzesService {
     });
 
     const courseId = quiz.unit.subsection.section.course.id;
-    // new attempt triggers recalc — can also recalc manually via grades API; events later maybe
+    // grade recalculation is triggered manually here (no event bus yet)
     await this.gradesService.recalculateForUserOnCourse(actor.userId, courseId);
 
     return {

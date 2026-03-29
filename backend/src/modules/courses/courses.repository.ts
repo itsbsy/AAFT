@@ -15,6 +15,23 @@ export class CoursesRepository {
     return this.prisma.course.findUnique({ where: { id } });
   }
 
+  findManyCourses(where: Prisma.CourseWhereInput, skip: number, take: number) {
+    return this.prisma.course.findMany({
+      where,
+      skip,
+      take,
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        published: true,
+        instructorId: true,
+        createdAt: true,
+      },
+    });
+  }
+
   findCourseWithTree(id: string) {
     return this.prisma.course.findUnique({
       where: { id },

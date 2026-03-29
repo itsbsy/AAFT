@@ -29,11 +29,10 @@ export class GradesRepository {
     });
   }
 
-  findEnrollment(courseRunId: string, userId: string) {
-    return this.prisma.enrollment.findUnique({
-      where: {
-        courseRunId_userId: { courseRunId, userId },
-      },
+  /** active enrollment only soft-unenroll means no grade row for students */
+  findActiveEnrollment(courseRunId: string, userId: string) {
+    return this.prisma.enrollment.findFirst({
+      where: { courseRunId, userId, isActive: true },
     });
   }
 

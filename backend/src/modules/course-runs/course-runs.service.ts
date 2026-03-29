@@ -11,6 +11,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CourseRunsRepository } from './course-runs.repository';
 import { CloneCourseRunDto } from './dto/clone-course-run.dto';
 import { CreateCourseRunDto } from './dto/create-course-run.dto';
+import { ListCourseRunsQueryDto } from './dto/list-course-runs-query.dto';
 
 // validation is minimal — dates/order/price rules can tighten later
 @Injectable()
@@ -78,13 +79,18 @@ export class CourseRunsService {
     return run;
   }
 
-  async findByCourse(courseId: string, actor: JwtPayload) {
+  async findByCourse(query: ListCourseRunsQueryDto, actor: JwtPayload) {
+    const { courseId, page, limit } = query;
     const course = await this.prisma.course.findUnique({ where: { id: courseId } });
     if (!course) {
       throw new NotFoundException('Course not found');
     }
     this.assertInstructorOwnerOrAdmin(course.instructorId, actor);
-    return this.repo.findManyByCourseId(courseId);
+    // basic pagination for now 
+    const p = page && page > 0 ? page : 1;
+    const l = limit && limit > 0 ? Math.min(limit, 100) : 10;
+    const skip = (p - 1) * l;
+    return this.repo.findManyByCourseId(courseId, skip, l);
   }
 
   async remove(id: string, actor: JwtPayload) {

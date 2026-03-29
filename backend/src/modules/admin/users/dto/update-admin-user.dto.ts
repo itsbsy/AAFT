@@ -1,4 +1,5 @@
 import { RoleName } from '@prisma/client';
+import { Type } from 'class-transformer';
 import {
   IsBoolean,
   IsEmail,
@@ -33,6 +34,7 @@ export class UpdateAdminUserDto {
   role?: RoleName;
 
   @IsOptional()
+  @Type(() => Boolean)
   @IsBoolean()
   isActive?: boolean;
 }

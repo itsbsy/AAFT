@@ -1,8 +1,7 @@
-import { IsString, MinLength } from 'class-validator';
+import { IsString, IsUUID, MinLength } from 'class-validator';
 
 export class QuizOptionItemDto {
-  @IsString()
-  @MinLength(1)
+  @IsUUID()
   id!: string;
 
   @IsString()

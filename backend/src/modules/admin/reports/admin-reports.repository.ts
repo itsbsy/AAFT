@@ -18,10 +18,6 @@ export class AdminReportsRepository {
     return { updatedAt: range };
   }
 
-  countProgress(range: DateRangeFilter | undefined) {
-    return this.prisma.unitProgress.count({ where: this.progressWhere(range) });
-  }
-
   findProgressPage(
     range: DateRangeFilter | undefined,
     skip: number,
@@ -48,12 +44,6 @@ export class AdminReportsRepository {
       return {};
     }
     return { issuedAt: range };
-  }
-
-  countCompletions(range: DateRangeFilter | undefined) {
-    return this.prisma.certificate.count({
-      where: this.certificateWhere(range),
-    });
   }
 
   findCompletionsPage(
@@ -91,12 +81,6 @@ export class AdminReportsRepository {
       base.updatedAt = range;
     }
     return base;
-  }
-
-  countTimeSpent(range: DateRangeFilter | undefined) {
-    return this.prisma.unitProgress.count({
-      where: this.timeSpentWhere(range),
-    });
   }
 
   findTimeSpentPage(

@@ -15,10 +15,6 @@ export class AdminUsersRepository {
     return role;
   }
 
-  count(): Promise<number> {
-    return this.prisma.user.count();
-  }
-
   findManyPaginated(skip: number, take: number) {
     return this.prisma.user.findMany({
       skip,

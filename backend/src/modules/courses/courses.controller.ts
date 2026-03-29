@@ -6,6 +6,7 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
   Req,
 } from '@nestjs/common';
 import { RoleName } from '@prisma/client';
@@ -13,6 +14,7 @@ import type { Request } from 'express';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { CoursesService } from './courses.service';
 import { CreateCourseDto } from './dto/create-course.dto';
+import { ListCoursesQueryDto } from './dto/list-courses-query.dto';
 import { CreateSectionDto } from './dto/create-section.dto';
 import { CreateSubsectionDto } from './dto/create-subsection.dto';
 import { CreateUnitDto } from './dto/create-unit.dto';
@@ -36,6 +38,11 @@ export class CoursesController {
     @Req() req: Request,
   ) {
     return this.coursesService.publish(courseId, dto, req.user!);
+  }
+
+  @Get()
+  list(@Query() query: ListCoursesQueryDto, @Req() req: Request) {
+    return this.coursesService.list(query, req.user!);
   }
 
   @Get(':courseId')

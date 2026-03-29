@@ -38,7 +38,7 @@ export class CourseRunsController {
 
   @Get()
   listByCourse(@Query() query: ListCourseRunsQueryDto, @Req() req: Request) {
-    return this.courseRunsService.findByCourse(query.courseId, req.user!);
+    return this.courseRunsService.findByCourse(query, req.user!);
   }
 
   @Get(':id')

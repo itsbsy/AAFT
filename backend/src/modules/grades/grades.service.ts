@@ -58,8 +58,11 @@ export class GradesService {
   ) {
     await this.assertCanViewGrade(courseRunId, targetUserId, actor);
 
-    const enrollment = await this.repo.findEnrollment(courseRunId, targetUserId);
-    if (!enrollment?.isActive) {
+    const enrollment = await this.repo.findActiveEnrollment(
+      courseRunId,
+      targetUserId,
+    );
+    if (!enrollment) {
       throw new NotFoundException('Enrollment not found');
     }
 
@@ -86,8 +89,8 @@ export class GradesService {
   }
 
   /**
-   * Called after quiz attempts (and via manual endpoints).
-   * recalculation is triggered manually from API too 
+   * Called after quiz / video progress (and manual grade endpoints).
+   * grade recalculation is triggered manually here — one row per course run the user is active in
    */
   async recalculateForUserOnCourse(userId: string, courseId: string) {
     const rows = await this.repo.findEnrollmentsByUserAndCourse(userId, courseId);
@@ -102,8 +105,8 @@ export class GradesService {
     actor: JwtPayload,
   ) {
     await this.assertCanViewGrade(courseRunId, userId, actor);
-    const enrollment = await this.repo.findEnrollment(courseRunId, userId);
-    if (!enrollment?.isActive) {
+    const enrollment = await this.repo.findActiveEnrollment(courseRunId, userId);
+    if (!enrollment) {
       throw new NotFoundException('Enrollment not found');
     }
     return this.recalculateEnrollmentById(enrollment.id);
@@ -169,6 +172,7 @@ export class GradesService {
       gradeBreakdown: breakdown,
     });
 
+    // certificate generation is simple sync logic — issued once when pass flips true
     await this.certificatesService.issueForPassedEnrollment(passed, {
       enrollmentId: enrollment.id,
       userId: enrollment.userId,
@@ -260,48 +264,40 @@ export class GradesService {
   }
 
   private async buildVideoDetails(userId: string, units: FlatUnit[]) {
-    const details: {
-      unitId: string;
-      title: string;
-      completionPercent: number;
-    }[] = [];
-    for (const u of units) {
-      const p = await this.prisma.unitProgress.findUnique({
-        where: { userId_unitId: { userId, unitId: u.id } },
-      });
-      details.push({
-        unitId: u.id,
-        title: u.title,
-        completionPercent: p?.completionPercent ?? 0,
-      });
+    if (units.length === 0) {
+      return [];
     }
-    return details;
+    const unitIds = units.map((u) => u.id);
+    const progressRows = await this.prisma.unitProgress.findMany({
+      where: { userId, unitId: { in: unitIds } },
+    });
+    const byUnit = new Map(progressRows.map((p) => [p.unitId, p]));
+    return units.map((u) => ({
+      unitId: u.id,
+      title: u.title,
+      completionPercent: byUnit.get(u.id)?.completionPercent ?? 0,
+    }));
   }
 
   private async buildQuizDetails(userId: string, units: FlatUnit[]) {
-    const details: {
-      unitId: string;
-      title: string;
-      quizId: string | null;
-      bestScorePercent: number;
-    }[] = [];
-    for (const u of units) {
-      let best = 0;
-      if (u.quizId) {
-        const agg = await this.prisma.quizAttempt.aggregate({
-          where: { userId, quizId: u.quizId },
-          _max: { scorePercent: true },
-        });
-        best = agg._max.scorePercent ?? 0;
-      }
-      details.push({
-        unitId: u.id,
-        title: u.title,
-        quizId: u.quizId,
-        bestScorePercent: best,
+    const quizIds = units.map((u) => u.quizId).filter((id): id is string => !!id);
+    const bestByQuiz = new Map<string, number>();
+    if (quizIds.length > 0) {
+      const groups = await this.prisma.quizAttempt.groupBy({
+        by: ['quizId'],
+        where: { userId, quizId: { in: quizIds } },
+        _max: { scorePercent: true },
       });
+      for (const g of groups) {
+        bestByQuiz.set(g.quizId, g._max.scorePercent ?? 0);
+      }
     }
-    return details;
+    return units.map((u) => ({
+      unitId: u.id,
+      title: u.title,
+      quizId: u.quizId,
+      bestScorePercent: u.quizId ? (bestByQuiz.get(u.quizId) ?? 0) : 0,
+    }));
   }
 
   private assertInstructorOwnerOrAdmin(

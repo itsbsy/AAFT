@@ -35,6 +35,7 @@ export class CreateCourseRunDto {
   price!: number;
 
   @IsOptional()
+  @Type(() => Boolean)
   @IsBoolean()
   isActive?: boolean;
 }

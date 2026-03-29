@@ -24,10 +24,12 @@ export class CourseRunsRepository {
     });
   }
 
-  findManyByCourseId(courseId: string) {
+  findManyByCourseId(courseId: string, skip: number, take: number) {
     return this.prisma.courseRun.findMany({
       where: { courseId },
       orderBy: { startDate: 'desc' },
+      skip,
+      take,
       include: {
         course: {
           select: { id: true, title: true, published: true, instructorId: true },

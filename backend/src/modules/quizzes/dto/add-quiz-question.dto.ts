@@ -5,6 +5,7 @@ import {
   IsArray,
   IsEnum,
   IsString,
+  IsUUID,
   MinLength,
   ValidateNested,
 } from 'class-validator';
@@ -26,6 +27,6 @@ export class AddQuizQuestionDto {
 
   @IsArray()
   @ArrayMinSize(1)
-  @IsString({ each: true })
+  @IsUUID('4', { each: true })
   correctOptionIds!: string[];
 }

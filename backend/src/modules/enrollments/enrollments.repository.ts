@@ -28,4 +28,24 @@ export class EnrollmentsRepository {
       data: patch,
     });
   }
+
+  findManyByRun(courseRunId: string, skip: number, take: number) {
+    return this.prisma.enrollment.findMany({
+      // list API: only active enrollments
+      where: { courseRunId, isActive: true },
+      skip,
+      take,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
+    });
+  }
 }

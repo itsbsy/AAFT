@@ -1,8 +1,8 @@
 import { Type } from 'class-transformer';
 import { IsInt, IsOptional, Max, Min } from 'class-validator';
 
-
-export class ListUsersQueryDto {
+// basic pagination for now 
+export class ListCoursesQueryDto {
   @IsOptional()
   @Type(() => Number)
   @IsInt()

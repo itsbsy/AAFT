@@ -52,7 +52,7 @@ enum EnrollmentKind {
 
 model User {
   id           String   @id @default(uuid()) @db.Uuid
-  email        String   @unique
+  email        String   @unique // one account per email
   passwordHash String   @map("password_hash")
   firstName    String   @map("first_name")
   lastName     String   @map("last_name")
@@ -67,6 +67,20 @@ model User {
   unitProgress      UnitProgress[]
   quizAttempts      QuizAttempt[]
   certificates      Certificate[]
+  refreshTokens     RefreshToken[]
+}
+
+// storing token hash in DB for now
+model RefreshToken {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  tokenHash String   @unique @map("token_hash")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model Course {
@@ -135,6 +149,7 @@ model UnitProgress {
   unit Unit @relation(fields: [unitId], references: [id], onDelete: Cascade)
 
   @@unique([userId, unitId])
+  @@index([userId])
 }
 
 model CourseRun {
@@ -153,6 +168,8 @@ model CourseRun {
   enrollments    Enrollment[]
   gradingConfig  GradingConfig?
   certificates   Certificate[]
+
+  @@index([courseId])
 }
 
 model Enrollment {
@@ -171,7 +188,10 @@ model Enrollment {
   user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   certificate Certificate?
 
+  // added constraint to avoid duplicate enrollments (one row per user per run; soft-unenroll uses is_active)
   @@unique([courseRunId, userId])
+  @@index([courseRunId])
+  @@index([userId])
 }
 
 model Certificate {
@@ -179,7 +199,7 @@ model Certificate {
   enrollmentId          String   @unique @map("enrollment_id") @db.Uuid
   userId                String   @map("user_id") @db.Uuid
   courseRunId           String   @map("course_run_id") @db.Uuid
-  verificationCode      String   @unique @map("verification_code")
+  verificationCode      String   @unique @map("verification_code") // globally unique for public verify
   courseTitleSnapshot   String   @map("course_title_snapshot")
   runNameSnapshot       String   @map("run_name_snapshot")
   recipientNameSnapshot String   @map("recipient_name_snapshot")
@@ -188,6 +208,9 @@ model Certificate {
   enrollment Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Restrict)
   user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   courseRun  CourseRun  @relation(fields: [courseRunId], references: [id], onDelete: Restrict)
+
+  @@index([courseRunId])
+  @@index([userId])
 }
 
 model GradingConfig {
@@ -240,4 +263,5 @@ model QuizAttempt {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([quizId, userId])
+  @@index([userId])
 }

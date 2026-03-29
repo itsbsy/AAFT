@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { RoleName } from '@prisma/client';
+import { Prisma, RoleName } from '@prisma/client';
 import type { JwtPayload } from '../auth/auth.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CoursesRepository } from './courses.repository';
@@ -11,6 +11,7 @@ import { CreateCourseDto } from './dto/create-course.dto';
 import { CreateSectionDto } from './dto/create-section.dto';
 import { CreateSubsectionDto } from './dto/create-subsection.dto';
 import { CreateUnitDto } from './dto/create-unit.dto';
+import { ListCoursesQueryDto } from './dto/list-courses-query.dto';
 import { PublishCourseDto } from './dto/publish-course.dto';
 
 // hierarchy + deep fetches are simple for now might need optimization later
@@ -121,6 +122,23 @@ export class CoursesService {
     }
     this.assertCanView(course, actor);
     return course;
+  }
+
+  async list(query: ListCoursesQueryDto, actor: JwtPayload) {
+    // basic pagination for now — can improve with total count later
+    const page = query.page && query.page > 0 ? query.page : 1;
+    const limit =
+      query.limit && query.limit > 0 ? Math.min(query.limit, 100) : 10;
+    const skip = (page - 1) * limit;
+
+    const where: Prisma.CourseWhereInput = {};
+    if (actor.role === RoleName.Student) {
+      where.published = true;
+    } else if (actor.role === RoleName.Instructor) {
+      where.instructorId = actor.userId;
+    }
+
+    return this.coursesRepo.findManyCourses(where, skip, limit);
   }
 
   private async requireCourse(courseId: string) {

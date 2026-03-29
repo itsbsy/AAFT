@@ -17,7 +17,9 @@ export type IssueCertificateContext = {
 export class CertificatesService {
   constructor(private readonly repo: CertificatesRepository) {}
 
-  /** generation is synchronous for now — no queue / PDF pipeline */
+  /**
+   * certificate generation is simple sync logic  unique verification_code at DB 
+   */
   async issueForPassedEnrollment(
     passed: boolean,
     ctx: IssueCertificateContext,
