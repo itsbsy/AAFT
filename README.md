@@ -39,11 +39,25 @@ There's also `src/modules/auth` for JWT guards, `prisma/` for schema + migration
 4. Apply DB schema:  
    `npx prisma migrate deploy`  
    (or `npx prisma migrate dev` when you're iterating locally)
-5. Run the server:  
+5. Seed a default **Admin** user (login works immediately):  
+   `npm run db:seed`  
+   Override defaults with `SEED_ADMIN_EMAIL`, `SEED_ADMIN_PASSWORD`, etc. in `.env` (see `.env.example`). Safe to re-run: skips if that email already exists.
+6. Run the server:  
    `npm run start:dev`  
    Default port is **3000** unless you set `PORT`.
 
 If `migrate` complains, check Postgres is running and `DATABASE_URL` is correct.
+
+### Default admin credentials (after `npm run db:seed`)
+
+Use these with `POST /auth/login` (or Swagger **Authorize** with the access token you get back):
+
+| Field | Value |
+| --- | --- |
+| **Email** | `admin@example.com` |
+| **Password** | `Admin123!` |
+
+These are **development defaults only** — change them for anything beyond local demo.
 
 ## Environment variables
 
